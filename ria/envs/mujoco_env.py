@@ -1,8 +1,8 @@
 import numpy as np
 import os.path as osp
-from tmcl import spaces
-from tmcl.envs.base import Env
-from tmcl.mujoco_py import MjModel, MjViewer
+from ria import spaces
+from ria.envs.base import Env
+from ria.mujoco_py import MjModel, MjViewer
 from gym.utils import seeding
 
 MODEL_DIR = osp.abspath(
@@ -208,7 +208,7 @@ class MujocoEnv(Env):
 
     def release(self):
         # temporarily alleviate the issue (but still some leak)
-        from tmcl.mujoco_py.mjlib import mjlib
+        from ria.mujoco_py.mjlib import mjlib
 
         mjlib.mj_deleteModel(self.model._wrapped)
         mjlib.mj_deleteData(self.data._wrapped)

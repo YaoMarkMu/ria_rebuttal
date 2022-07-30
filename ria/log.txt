@@ -1,4 +1,4 @@
-Logging to /share/jguo/Con-trajectory/data//PENDULUM//NORMALIZED/TMCL/PROB/CEM/CAND_200/T_BATCH_250/S_BATCH_10/T_S_BATCH_256/IE_3/EPOCH_50/ENS_5/HEAD_5/SEP_0/USE_IE/H_10/F_5/BACK_COEFF_0.5/DIFF/GLOBAL_HEAD/tag_relationweight/hidden_200_lr_0.001_horizon_30_seed_0/
+Logging to /share/jguo/Con-trajectory/data//PENDULUM//NORMALIZED/ria/PROB/CEM/CAND_200/T_BATCH_250/S_BATCH_10/T_S_BATCH_256/IE_3/EPOCH_50/ENS_5/HEAD_5/SEP_0/USE_IE/H_10/F_5/BACK_COEFF_0.5/DIFF/GLOBAL_HEAD/tag_relationweight/hidden_200_lr_0.001_horizon_30_seed_0/
 
  ---------------- Iteration 0 ----------------
 Obtaining random samples from the environment...

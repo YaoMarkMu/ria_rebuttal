@@ -1,5 +1,5 @@
-from tmcl.utils.serializable import Serializable
-from tmcl.spaces.base import Space
+from ria.utils.serializable import Serializable
+from ria.spaces.base import Space
 
 
 class EnvSpec(Serializable):

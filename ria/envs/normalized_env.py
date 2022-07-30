@@ -1,7 +1,7 @@
 import numpy as np
-from tmcl.utils.serializable import Serializable
+from ria.utils.serializable import Serializable
 from gym.spaces import Box
-from tmcl.spaces import Box as CustomBox
+from ria.spaces import Box as CustomBox
 
 # from rand_param_envs.gym.spaces import Box as OldBox
 

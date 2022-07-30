@@ -1,5 +1,5 @@
-from tmcl.envs.normalized_env import normalize
-from tmcl.envs import *
+from ria.envs.normalized_env import normalize
+from ria.envs import *
 
 
 def get_environment_config(config):
