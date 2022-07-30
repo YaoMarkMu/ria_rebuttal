@@ -1,6 +1,6 @@
 import math
 from collections import OrderedDict
-
+import time
 from gym import spaces
 from gym.envs.classic_control.cartpole import CartPoleEnv
 from gym.envs.classic_control.pendulum import PendulumEnv
@@ -313,7 +313,11 @@ class RandomPendulumAll(ModifiablePendulumEnv):
 
         random_index = self.np_random.randint(len(self.length_set))
         self.length = self.length_set[random_index]
+        self.label_num = len(self.mass_set) * len(self.length_set)
 
+
+    def num_modifiable_parameters(self):
+        return 2
     def seed(self, seed=None):
         if seed is None:
             self._seed = 0
@@ -321,14 +325,27 @@ class RandomPendulumAll(ModifiablePendulumEnv):
             self._seed = seed
         super().seed(seed)
 
-    def num_modifiable_parameters(self):
-        return 2
-    
-    def reset(self):
-        random_index = self.np_random.randint(len(self.mass_set))
-        self.mass = self.mass_set[random_index]
+    def get_labels(self):
+        return self.label_index
 
+    def reset(self, env_id=0):
+        try:
+            self.reset_num = int(str(time.time())[-3:])
+        except:
+            self.reset_num = 1
+        # self.reset_num = int(str(time.time())[-2:])
+        # print(self.reset_num)
+        self.np_random.seed(self.reset_num)
+        random_index = self.np_random.randint(len(self.mass_set))
+        # print(random_index)
+        self.mass = self.mass_set[random_index]
+        self.label_index = (random_index) * len(self.length_set)
+        # seeding.np_random(len(self.mass_set))
+        # self.np_random.random.seed(len(self.length_set))
         random_index = self.np_random.randint(len(self.length_set))
+        # print(random_index)
         self.length = self.length_set[random_index]
+        self.label_index = self.label_index + random_index
+
 
         return super(RandomPendulumAll, self).reset()
