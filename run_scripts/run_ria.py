@@ -338,15 +338,7 @@ if __name__ == "__main__":
         # Policy
         "n_candidates": args.n_candidate,
         "horizon": args.horizon,
-        # Policy - C
-        
-        
-        
-        
-        
-        
-        
-        Hyperparameters
+        # Policy - CEM Hyperparameters
         "use_cem": args.policy_type == "CEM",
         # Environments
         "dataset": args.dataset,
