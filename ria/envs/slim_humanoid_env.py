@@ -3,7 +3,7 @@ import tensorflow as tf
 from gym.envs.mujoco import mujoco_env
 from gym import utils
 import os
-
+import time
 
 def mass_center(model, sim):
     mass = np.expand_dims(model.body_mass, 1)
@@ -24,7 +24,9 @@ class SlimHumanoidEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         self.mass_scale_set = mass_scale_set
         self.damping_scale_set = damping_scale_set
-
+        self.label_index = None
+        self.proc_observation_space_dims = self.obs_preproc(self._get_obs()).shape[-1]
+        #self._set_observation_space(self._get_obs())
         utils.EzPickle.__init__(self, mass_scale_set, damping_scale_set)
 
     def _set_observation_space(self, observation):
@@ -35,7 +37,8 @@ class SlimHumanoidEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def _get_obs(self):
         data = self.sim.data
         return np.concatenate([data.qpos.flat[2:], data.qvel.flat])
-
+    def get_labels(self):
+        return self.label_index
     def obs_preproc(self, obs):
         return obs
 
@@ -85,13 +88,22 @@ class SlimHumanoidEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         )
         pos_before = mass_center(self.model, self.sim)
         self.prev_pos = np.copy(pos_before)
-
+        try:
+            self.reset_num = int(str(time.time())[-2:])
+        except:
+            self.reset_num = 1
+        self.np_random.seed(self.reset_num)
+        # random_index = self.np_random.randint(len(self.mass_scale_set))
+        # self.mass_scale = self.mass_scale_set[random_index]
+        #
+        # random_index = self.np_random.randint(len(self.damping_scale_set))
+        # self.damping_scale = self.damping_scale_set[random_index]
         random_index = self.np_random.randint(len(self.mass_scale_set))
         self.mass_scale = self.mass_scale_set[random_index]
-
+        self.label_index = random_index * len(self.damping_scale_set)
         random_index = self.np_random.randint(len(self.damping_scale_set))
         self.damping_scale = self.damping_scale_set[random_index]
-
+        self.label_index = random_index + self.label_index
         self.change_env()
 
         return self._get_obs()
@@ -115,12 +127,12 @@ class SlimHumanoidEnv(mujoco_env.MujocoEnv, utils.EzPickle):
             ctrl = act
 
             lin_vel_cost = 0.25 / 0.015 * obs[..., 22]
-            quad_ctrl_cost = 0.1 * tf.compat.v1.reduce_sum(tf.compat.v1.square(ctrl), axis=-1)
+            quad_ctrl_cost = 0.1 * tf.reduce_sum(tf.square(ctrl), axis=-1)
             quad_impact_cost = 0.0
 
-            alive_bonus = 5.0 * tf.compat.v1.cast(
-                tf.compat.v1.logical_and(tf.compat.v1.greater(obs[..., 1], 1.0), tf.compat.v1.less(obs[..., 1], 2.0)),
-                dtype=tf.compat.v1.float32,
+            alive_bonus = 5.0 * tf.cast(
+                tf.logical_and(tf.greater(obs[..., 1], 1.0), tf.less(obs[..., 1], 2.0)),
+                dtype=tf.float32,
             )
 
             reward = lin_vel_cost - quad_ctrl_cost - quad_impact_cost + alive_bonus

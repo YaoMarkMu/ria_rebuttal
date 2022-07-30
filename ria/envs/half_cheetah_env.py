@@ -3,7 +3,7 @@ import os
 import tensorflow as tf
 from gym import utils
 from gym.envs.mujoco import mujoco_env
-
+import time
 
 class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def __init__(
@@ -18,7 +18,10 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         self.mass_scale_set = mass_scale_set
         self.damping_scale_set = damping_scale_set
-
+        self.label_num = len(self.mass_scale_set) * len(self.damping_scale_set)
+        self.label_index = None
+        self.proc_observation_space_dims = self.obs_preproc(self._get_obs()).shape[-1]
+        print(self.proc_observation_space_dims)
         utils.EzPickle.__init__(self, mass_scale_set, damping_scale_set)
 
     def _set_observation_space(self, observation):
@@ -28,6 +31,7 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
     def step(self, action):
         self.prev_qpos = np.copy(self.sim.data.qpos.flat)
+        time.sleep(.002)
         self.do_simulation(action, self.frame_skip)
         ob = self._get_obs()
 
@@ -37,7 +41,8 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         done = False
         return ob, reward, done, {}
-
+    def get_labels(self):
+        return self.label_index
     def seed(self, seed=None):
         if seed is None:
             self._seed = 0
@@ -66,11 +71,11 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
                 axis=-1,
             )
         else:
-            return tf.compat.v1.concat(
+            return tf.concat(
                 [
                     obs[..., 1:2],
-                    tf.compat.v1.sin(obs[..., 2:3]),
-                    tf.compat.v1.cos(obs[..., 2:3]),
+                    tf.sin(obs[..., 2:3]),
+                    tf.cos(obs[..., 2:3]),
                     obs[..., 3:],
                 ],
                 axis=-1,
@@ -82,7 +87,7 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
                 [pred[..., :1], obs[..., 1:] + pred[..., 1:]], axis=-1
             )
         else:
-            return tf.compat.v1.concat([pred[..., :1], obs[..., 1:] + pred[..., 1:]], axis=-1)
+            return tf.concat([pred[..., :1], obs[..., 1:] + pred[..., 1:]], axis=-1)
 
     def targ_proc(self, obs, next_obs):
         return np.concatenate(
@@ -90,21 +95,23 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         )
 
     def reset_model(self):
-        qpos = self.init_qpos + self.np_random.normal(
-            loc=0, scale=0.001, size=self.model.nq
-        )
-        qvel = self.init_qvel + self.np_random.normal(
-            loc=0, scale=0.001, size=self.model.nv
-        )
+        try:
+            self.reset_num = int(str(time.time())[-2:])
+        except:
+            self.reset_num = 1
+        # print(self.reset_num)
+        self.np_random.seed(self.reset_num)
+        qpos = self.init_qpos + self.np_random.normal(loc=0, scale=0.001, size=self.model.nq)
+        qvel = self.init_qvel + self.np_random.normal(loc=0, scale=0.001, size=self.model.nv)
         self.set_state(qpos, qvel)
         self.prev_qpos = np.copy(self.sim.data.qpos.flat)
 
         random_index = self.np_random.randint(len(self.mass_scale_set))
         self.mass_scale = self.mass_scale_set[random_index]
-
+        self.label_index = random_index * len(self.damping_scale_set)
         random_index = self.np_random.randint(len(self.damping_scale_set))
         self.damping_scale = self.damping_scale_set[random_index]
-
+        self.label_index = random_index + self.label_index
         self.change_env()
         return self._get_obs()
 
@@ -116,7 +123,7 @@ class HalfCheetahEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
     def tf_reward_fn(self):
         def _thunk(obs, act, next_obs):
-            ctrl_cost = 1e-1 * tf.compat.v1.reduce_sum(tf.compat.v1.square(act), axis=-1)
+            ctrl_cost = 1e-1 * tf.reduce_sum(tf.square(act), axis=-1)
             forward_reward = obs[..., 0]
             reward = forward_reward - ctrl_cost
             return reward

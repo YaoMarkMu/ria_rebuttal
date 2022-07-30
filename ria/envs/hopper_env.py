@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 from gym import utils
 from gym.envs.mujoco import mujoco_env
-
+import  time
 
 class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
     def __init__(
@@ -14,7 +14,9 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
 
         self.mass_scale_set = mass_scale_set
         self.damping_scale_set = damping_scale_set
-
+        self.label_index = None
+        self.proc_observation_space_dims = self.obs_preproc(self._get_obs()).shape[-1]
+        # self._set_observation_space(self._get_obs())
         utils.EzPickle.__init__(self, mass_scale_set, damping_scale_set)
 
     def _set_observation_space(self, observation):
@@ -33,7 +35,8 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
         done = False
         ob = self._get_obs()
         return ob, reward, done, {}
-
+    def get_labels(self):
+        return self.label_index
     def seed(self, seed=None):
         if seed is None:
             self._seed = 0
@@ -63,13 +66,17 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
             low=-0.005, high=0.005, size=self.model.nv
         )
         self.set_state(qpos, qvel)
-
+        try:
+            self.reset_num = int(str(time.time())[-2:])
+        except:
+            self.reset_num = 1
+        self.np_random.seed(self.reset_num)
         random_index = self.np_random.randint(len(self.mass_scale_set))
         self.mass_scale = self.mass_scale_set[random_index]
-
+        self.label_index = random_index * len(self.damping_scale_set)
         random_index = self.np_random.randint(len(self.damping_scale_set))
         self.damping_scale = self.damping_scale_set[random_index]
-
+        self.label_index = random_index + self.label_index
         self.change_env()
         return self._get_obs()
 
@@ -87,7 +94,7 @@ class HopperEnv(mujoco_env.MujocoEnv, utils.EzPickle):
             alive_bonus = 1.0
             reward = velocity
             reward += alive_bonus
-            reward -= 1e-3 * tf.compat.v1.reduce_sum(tf.compat.v1.square(act), axis=-1)
+            reward -= 1e-3 * tf.reduce_sum(tf.square(act), axis=-1)
             return reward
 
         return _thunk

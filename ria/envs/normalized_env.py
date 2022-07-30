@@ -2,7 +2,7 @@ import numpy as np
 from ria.utils.serializable import Serializable
 from gym.spaces import Box
 from ria.spaces import Box as CustomBox
-
+import time
 # from rand_param_envs.gym.spaces import Box as OldBox
 
 """
@@ -157,6 +157,7 @@ class NormalizedEnv(Serializable):
             scaled_action = np.clip(scaled_action, lb, ub)
         else:
             scaled_action = action
+        time.sleep(.002)
         wrapped_step = self._wrapped_env.step(scaled_action)
         next_obs, reward, done, info = wrapped_step
 
