@@ -187,7 +187,7 @@ if __name__ == "__main__":
         "--only_test_flag", action="store_true", help="flag to enable only test"
     )
     parser.add_argument(
-        "--ensemble_size", type=int, default=2, help="size of ensembles"
+        "--ensemble_size", type=int, default=1, help="size of ensembles"
     )
     parser.add_argument("--head_size", type=int, default=1, help="size of heads")
     parser.add_argument(
@@ -338,7 +338,15 @@ if __name__ == "__main__":
         # Policy
         "n_candidates": args.n_candidate,
         "horizon": args.horizon,
-        # Policy - CEM Hyperparameters
+        # Policy - C
+        
+        
+        
+        
+        
+        
+        
+        Hyperparameters
         "use_cem": args.policy_type == "CEM",
         # Environments
         "dataset": args.dataset,
